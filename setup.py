@@ -19,6 +19,7 @@ from setuptools import setup, Extension
 import codecs
 import os
 import platform
+import re
 import sys
 
 readme_note = """\
@@ -33,7 +34,14 @@ readme_note = """\
 """
 
 with codecs.open('README.rst', encoding='utf-8') as fobj:
-    long_description = readme_note + fobj.read()
+    content = fobj.read()
+    # Normalize line endings
+    content = content.replace('\r\n', '\n').replace('\r', '\n')
+    # Remove blank lines between directive and options
+    content = re.sub(r'(\.\. image:: [^\n]+)(\n\s*\n)+(\s+:)', r'\1\n\3', content)
+    # Remove blank lines between options themselves
+    content = re.sub(r'(\s+:[^:]+:[^\n]*)(\n\s*\n)+(\s+:)', r'\1\n\3', content)
+    long_description = readme_note + content
 
 # Various platform-dependent extras
 extra_compile_args = ['-D_CRT_SECURE_NO_WARNINGS', '-fpermissive']
@@ -73,7 +81,7 @@ if manual_linker_args:
     extra_link_args = manual_linker_args.split(',')
 
 setup(name='annoy',
-      version='1.17.3',
+      version='1.17.4rc0',
       description='Approximate Nearest Neighbors in C++/Python optimized for memory usage and loading/saving to disk.',
       packages=['annoy'],
       package_data={'annoy': ['__init__.pyi', 'py.typed']},
@@ -86,6 +94,7 @@ setup(name='annoy',
           )
       ],
       long_description=long_description,
+      long_description_content_type='text/x-rst',
       author='Erik Bernhardsson',
       author_email='mail@erikbern.com',
       url='https://github.com/spotify/annoy',
